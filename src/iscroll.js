@@ -611,7 +611,7 @@ iScroll.prototype = {
 			if (m.abs(distX) < that.options.snapThreshold && m.abs(distY) < that.options.snapThreshold) that.scrollTo(that.absStartX, that.absStartY, 200);
 			else {
 				snap = that._snap(that.x, that.y);
-				if (snap.x != that.x || snap.y != that.y) that.scrollTo(snap.x, snap.y, snap.time);
+				if (snap.x != that.x || snap.y != that.y) that.scrollTo(snap.x + 10, snap.y, snap.time);
 			}
 
 			if (that.options.onTouchEnd) that.options.onTouchEnd.call(that, e);

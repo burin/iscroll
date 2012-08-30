@@ -587,7 +587,7 @@ iScroll.prototype = {
 
 			// Do we need to snap?
 			if (that.options.snap) {
-				distX = newPosX - that.absStartX +10;
+				distX = newPosX - that.absStartX;
 				distY = newPosY - that.absStartY;
 				if (m.abs(distX) < that.options.snapThreshold && m.abs(distY) < that.options.snapThreshold) { that.scrollTo(that.absStartX, that.absStartY, 200); }
 				else {
@@ -598,7 +598,7 @@ iScroll.prototype = {
 				}
 			}
 
-			that.scrollTo(m.round(newPosX), m.round(newPosY), newDuration);
+			that.scrollTo(m.round(newPosX + 10), m.round(newPosY), newDuration);
 
 			if (that.options.onTouchEnd) that.options.onTouchEnd.call(that, e);
 			return;

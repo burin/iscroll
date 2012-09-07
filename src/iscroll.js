@@ -343,12 +343,14 @@ iScroll.prototype = {
 			matrix, x, y,
 			c1, c2;
 
+		if (this.initiated) return;
 		if (!that.enabled) return;
 
 		if (that.options.onBeforeScrollStart) that.options.onBeforeScrollStart.call(that, e);
 
 		if (that.options.useTransition || that.options.zoom) that._transitionTime(0);
 
+		this.initiated = true;
 		that.moved = false;
 		that.animating = false;
 		that.zoomed = false;
@@ -358,6 +360,9 @@ iScroll.prototype = {
 		that.absDistY = 0;
 		that.dirX = 0;
 		that.dirY = 0;
+		this.stepsX = 0;
+		this.stepsY = 0;
+		this.directionLocked = false;
 
 		// Gesture start
 		if (that.options.zoom && hasTouch && e.touches.length > 1) {
@@ -409,6 +414,7 @@ iScroll.prototype = {
 	},
 	
 	_move: function (e) {
+		if (!this.initiated) return;
 		var that = this,
 			point = hasTouch ? e.touches[0] : e,
 			deltaX = point.pageX - that.pointX,
@@ -444,8 +450,27 @@ iScroll.prototype = {
 			return;
 		}
 
+		this.moved = true;
 		that.pointX = point.pageX;
 		that.pointY = point.pageY;
+		this.stepsX += Math.abs(deltaX);
+		this.stepsY += Math.abs(deltaY);
+
+		// We take a 10px buffer to figure out the direction of the swipe
+		if (this.stepsX < 10 && this.stepsY < 10) {
+//				e.preventDefault();
+			return;
+		}
+
+		// We are scrolling vertically, so skip SwipeView and give the control back to the browser
+		if (!that.options.vScroll && !this.directionLocked && this.stepsY > this.stepsX) {
+			this.initiated = false;
+			return;
+		}
+
+		e.preventDefault();
+
+		this.directionLocked = true;
 
 		// Slow down if outside of the boundaries
 		if (newX > 0 || newX < that.maxScrollX) {
@@ -490,7 +515,9 @@ iScroll.prototype = {
 	},
 	
 	_end: function (e) {
+		if (!this.initiated) return;
 		if (hasTouch && e.touches.length !== 0) return;
+		this.initiated = false;
 
 		var that = this,
 			point = hasTouch ? e.changedTouches[0] : e,
@@ -1001,6 +1028,7 @@ iScroll.prototype = {
 		pos.top += that.wrapperOffsetTop;
 
 		pos.left = pos.left > 0 ? 0 : pos.left < that.maxScrollX ? that.maxScrollX : pos.left;
+		pos.left = pos.left + 10;
 		pos.top = pos.top > that.minScrollY ? that.minScrollY : pos.top < that.maxScrollY ? that.maxScrollY : pos.top;
 		time = time === undefined ? m.max(m.abs(pos.left)*2, m.abs(pos.top)*2) : time;
 
